@@ -71,7 +71,7 @@ pub async fn get_all_post_meta() -> Result<Vec<Metadata>, Box<dyn std::error::Er
     let mut metas = Vec::new();
     while let Some(file) = files.next_entry().await? {
         let path = file.path();
-        if path.extension().unwrap() != "md" {
+        if path.extension().unwrap_or_default() != "md" {
             continue;
         }
         let path = path.to_str().unwrap();
