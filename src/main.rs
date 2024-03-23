@@ -2,9 +2,11 @@ mod blog;
 
 use axum::{
     http::StatusCode,
+    response::IntoResponse,
     routing::{get, post},
     Json, Router,
 };
+use blog::Metadata;
 use serde::{Deserialize, Serialize};
 
 #[tokio::main]
@@ -16,7 +18,7 @@ async fn main() {
     let app = Router::new()
         // `GET /` goes to `root`
         .route("/api", get(root))
-        .route("/api/blogs", get(get_all_post_mata))
+        .route("/api/blogs", get(get_all_post_meta))
         .route("/api/blog", post(get_post_by_link));
 
     // run our app with hyper, listening globally on port 3000
@@ -29,22 +31,19 @@ async fn root() -> &'static str {
     "Hello, World!"
 }
 
-async fn get_all_post_mata() -> (StatusCode, Json<Vec<blog::Metadata>>) {
-    let metas = blog::get_all_post_mata().await.unwrap();
-    (StatusCode::OK, Json(metas))
+async fn get_all_post_meta() -> Result<Json<Vec<Metadata>>, MyError> {
+    let metas = blog::get_all_post_meta().await?;
+    Ok(Json(metas))
 }
 
-async fn get_post_by_link(Json(payload): Json<GetPost>) -> (StatusCode, Json<Post>) {
-    let path = blog::covert_link_to_path(&payload.link).await.unwrap();
-    let content = blog::get_post_by_path(&path).await.unwrap();
-    let meta = blog::get_post_mata_by_path(&path).await.unwrap();
-    (
-        StatusCode::OK,
-        Json(Post {
-            date: meta.date,
-            content,
-        }),
-    )
+async fn get_post_by_link(Json(payload): Json<GetPost>) -> Result<Json<Post>, MyError> {
+    let path = blog::covert_link_to_path(&payload.link).await?;
+    let meta = blog::get_post_mata_by_path(&path).await?;
+    let content = blog::get_post_by_path(&path).await?;
+    Ok(Json(Post {
+        date: meta.date,
+        content,
+    }))
 }
 
 #[derive(Deserialize)]
@@ -56,4 +55,23 @@ struct GetPost {
 struct Post {
     date: String,
     content: String,
+}
+
+// 自定义错误类型
+struct MyError(Box<dyn std::error::Error>);
+
+impl From<Box<dyn std::error::Error>> for MyError {
+    fn from(err: Box<dyn std::error::Error>) -> Self {
+        MyError(err)
+    }
+}
+
+impl IntoResponse for MyError {
+    fn into_response(self) -> axum::http::Response<axum::body::Body> {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("发生错误: {}", self.0),
+        )
+            .into_response()
+    }
 }

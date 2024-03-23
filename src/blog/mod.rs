@@ -64,7 +64,7 @@ pub async fn get_post_mata_by_path(path: &str) -> Result<Metadata, Box<dyn std::
     Ok(meta)
 }
 
-pub async fn get_all_post_mata() -> Result<Vec<Metadata>, Box<dyn std::error::Error>> {
+pub async fn get_all_post_meta() -> Result<Vec<Metadata>, Box<dyn std::error::Error>> {
     let path = "blog/";
     let mut files = tokio::fs::read_dir(path).await?;
     let mut metas = Vec::new();
