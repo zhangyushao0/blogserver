@@ -13,3 +13,4 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 pulldown-cmark = "0.10.0"
 serde_yaml = "0.9.33"
 syntect = "5.2.0"
+tower-http = { version = "0.5.2", features = ["fs"] }

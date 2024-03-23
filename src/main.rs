@@ -3,11 +3,12 @@ mod blog;
 use axum::{
     http::StatusCode,
     response::IntoResponse,
-    routing::{get, post},
+    routing::{get, get_service, post},
     Json, Router,
 };
 use blog::Metadata;
 use serde::{Deserialize, Serialize};
+use tower_http::services::ServeDir;
 
 #[tokio::main]
 async fn main() {
@@ -19,7 +20,8 @@ async fn main() {
         // `GET /` goes to `root`
         .route("/api", get(root))
         .route("/api/blogs", get(get_all_post_meta))
-        .route("/api/blog", post(get_post_by_link));
+        .route("/api/blog", post(get_post_by_link))
+        .nest_service("/api/blog/image", get_service(ServeDir::new("blog/image")));
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
