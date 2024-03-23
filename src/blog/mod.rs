@@ -66,10 +66,14 @@ pub async fn get_post_mata_by_path(path: &str) -> Result<Metadata, Box<dyn std::
 
 pub async fn get_all_post_meta() -> Result<Vec<Metadata>, Box<dyn std::error::Error>> {
     let path = "blog/";
+    // 筛选出所有的md文件
     let mut files = tokio::fs::read_dir(path).await?;
     let mut metas = Vec::new();
     while let Some(file) = files.next_entry().await? {
         let path = file.path();
+        if path.extension().unwrap() != "md" {
+            continue;
+        }
         let path = path.to_str().unwrap();
         let meta = get_post_mata_by_path(path).await?;
         metas.push(meta);
