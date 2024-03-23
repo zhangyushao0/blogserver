@@ -86,6 +86,9 @@ pub async fn covert_link_to_path(link: &str) -> Result<String, Box<dyn std::erro
     let mut files = tokio::fs::read_dir(path).await?;
     while let Some(file) = files.next_entry().await? {
         let path = file.path();
+        if path.extension().unwrap_or_default() != "md" {
+            continue;
+        }
         let path = path.to_str().unwrap();
         let meta = get_post_mata_by_path(path).await?;
         if meta.link == link {
