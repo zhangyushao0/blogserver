@@ -68,10 +68,6 @@ impl From<Box<dyn std::error::Error>> for MyError {
 
 impl IntoResponse for MyError {
     fn into_response(self) -> axum::http::Response<axum::body::Body> {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("发生错误: {}", self.0),
-        )
-            .into_response()
+        (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", self.0)).into_response()
     }
 }
